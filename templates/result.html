@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Result - EcoPredict AI{% endblock %}
+
+{% block content %}
+<!-- Action Header -->
+<div class="page-header btn-print-hide">
+    <div>
+        <h1 class="page-title">Carbon Emission Prediction Report</h1>
+        <p class="page-subtitle">Report ID: #{{ pred.id }} | Generated on {{ pred.timestamp }}</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <button type="button" onclick="window.print()" class="btn btn-outline">🖨️ Print Report</button>
+        <a href="{{ url_for('map_view') }}?lat={{ pred.latitude }}&lng={{ pred.longitude }}" class="btn btn-primary">🗺️ View Location on Map</a>
+    </div>
+</div>
+
+<!-- Key Highlights Grid -->
+<div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 2rem;">
+    
+    <!-- Emission Result Card -->
+    <div class="card" style="text-align: center; border-left: 5px solid {% if pred.emission_category == 'Low' %}#10b981{% elif pred.emission_category == 'Moderate' %}#f59e0b{% elif pred.emission_category == 'High' %}#f97316{% else %}#ef4444{% endif %};">
+        <div style="font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">Predicted Carbon Emission</div>
+        <div style="font-size: 2.2rem; font-weight: 800; color: var(--dark); margin: 0.4rem 0;">
+            {{ pred.predicted_emission }} <span style="font-size: 1.1rem; font-weight: 500;">kg CO₂</span>
+        </div>
+        <div>
+            {% if pred.emission_category == 'Low' %}
+                <span class="badge badge-low" style="font-size: 0.9rem;">Low Emission Zone</span>
+            {% elif pred.emission_category == 'Moderate' %}
+                <span class="badge badge-moderate" style="font-size: 0.9rem;">Moderate Emission Zone</span>
+            {% elif pred.emission_category == 'High' %}
+                <span class="badge badge-high" style="font-size: 0.9rem;">High Emission Risk</span>
+            {% else %}
+                <span class="badge badge-veryhigh" style="font-size: 0.9rem;">Critical Emission Level</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Environmental Score Card -->
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">Environmental Score</div>
+        <div style="font-size: 2.2rem; font-weight: 800; color: {% if result_data.environmental_score >= 80 %}#059669{% elif result_data.environmental_score >= 60 %}#0284c7{% elif result_data.environmental_score >= 40 %}#d97706{% else %}#dc2626{% endif %}; margin: 0.4rem 0;">
+            {{ result_data.environmental_score }} <span style="font-size: 1.1rem; font-weight: 500; color: var(--slate);">/ 100</span>
+        </div>
+        <div style="font-weight: 700; font-size: 0.95rem; color: var(--slate);">
+            STATUS: {{ result_data.environmental_rating }}
+        </div>
+    </div>
+
+    <!-- Tree Offset Card -->
+    <div class="card" style="text-align: center; background: #ecfdf5; border-color: #a7f3d0;">
+        <div style="font-size: 0.85rem; color: #065f46; font-weight: 600; text-transform: uppercase;">Estimated Tree Offset Requirement</div>
+        <div style="font-size: 2.2rem; font-weight: 800; color: #047857; margin: 0.4rem 0;">
+            🌳 {{ result_data.tree_offset }} <span style="font-size: 1rem; font-weight: 500;">Trees</span>
+        </div>
+        <div style="font-size: 0.8rem; color: #047857;">
+            Annual mature trees needed to offset CO₂
+        </div>
+    </div>
+
+    <!-- Location Card -->
+    <div class="card">
+        <div style="font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">Target Location</div>
+        <div style="font-size: 1.3rem; font-weight: 700; color: var(--dark); margin-top: 0.4rem;">
+            {{ pred.district }}
+        </div>
+        <div style="color: var(--slate); font-weight: 500; font-size: 0.95rem;">
+            📍 {{ pred.place }} ({{ pred.area_type }})
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem;">
+            Lat: {{ pred.latitude }} | Long: {{ pred.longitude }}
+        </div>
+    </div>
+</div>
+
+<!-- AI LLM RECOMMENDATION SECTION -->
+<div class="card" style="margin-bottom: 2rem; border-top: 4px solid #059669; background: #fafafa;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 0.5rem;">
+            <span>🤖 AI LLM Carbon Reduction Strategy</span>
+        </h2>
+        <span style="background: #e0f2fe; color: #0369a1; font-size: 0.8rem; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 600;">
+            {{ result_data.llm_recommendations.engine }}
+        </span>
+    </div>
+
+    <div style="background: #ffffff; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.25rem;">
+        <p style="font-size: 0.95rem; color: var(--slate); line-height: 1.6;">
+            <strong>AI Executive Summary:</strong> {{ result_data.llm_recommendations.summary }}
+        </p>
+        <div style="display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;">
+            <div style="background: #ecfdf5; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid #a7f3d0;">
+                <div style="font-size: 0.75rem; color: #065f46; font-weight: 600; text-transform: uppercase;">Est. Monthly CO₂ Reduction</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #047857;">-{{ result_data.llm_recommendations.estimated_co2_reduction_kg }} kg CO₂</div>
+            </div>
+            <div style="background: #f0f9ff; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid #bae6fd;">
+                <div style="font-size: 0.75rem; color: #0369a1; font-weight: 600; text-transform: uppercase;">Est. Monthly Savings</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #0284c7;">₹{{ result_data.llm_recommendations.estimated_monthly_savings_inr }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roadmap Steps -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        
+        <!-- Step 1 -->
+        <div style="background: #ffffff; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #059669; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                ⚡ Immediate Quick-Wins (Month 1)
+            </h4>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; color: var(--slate);">
+                {% for act in result_data.llm_recommendations.immediate_actions %}
+                <li style="display: flex; gap: 0.4rem;">
+                    <span style="color: #059669;">•</span>
+                    <span>{{ act }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div style="background: #ffffff; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #0284c7; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                🏡 Infrastructure Retrofits (Months 2-6)
+            </h4>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; color: var(--slate);">
+                {% for act in result_data.llm_recommendations.medium_term_actions %}
+                <li style="display: flex; gap: 0.4rem;">
+                    <span style="color: #0284c7;">•</span>
+                    <span>{{ act }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Step 3 -->
+        <div style="background: #ffffff; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #7c3aed; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                🌳 Ecosystem Sequestration (Long-term)
+            </h4>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; color: var(--slate);">
+                {% for act in result_data.llm_recommendations.long_term_actions %}
+                <li style="display: flex; gap: 0.4rem;">
+                    <span style="color: #7c3aed;">•</span>
+                    <span>{{ act }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analysis Sections -->
+<div class="charts-grid">
+    <!-- Factor Contribution Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <span>🔍 Major Contributing Factors</span>
+            <span style="font-size: 0.8rem; color: var(--muted); font-weight: normal;">Feature Impact</span>
+        </h3>
+        <div style="position: relative; height: 300px;">
+            <canvas id="chartContributions"></canvas>
+        </div>
+    </div>
+
+    <!-- Actionable Recommendations -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <span>🌱 Rules-Based Action Items</span>
+        </h3>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
+            {% for rec in result_data.recommendations %}
+            <li style="display: flex; gap: 0.75rem; background: var(--light-bg); padding: 0.75rem 1rem; border-radius: 8px; border-left: 4px solid var(--primary);">
+                <span style="font-size: 1.2rem;">💡</span>
+                <span style="font-size: 0.9rem; color: var(--slate); font-weight: 500;">{{ rec }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Summary Parameters Input Table -->
+<div style="margin-top: 2rem;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem;">Submitted Environmental & Energy Parameters</h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Parameter Name</th>
+                    <th>Submitted Value</th>
+                    <th>Standard Unit</th>
+                    <th>Impact Assessment</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Electricity Consumption</td>
+                    <td><strong>{{ pred.electricity_kwh }}</strong></td>
+                    <td>kWh / month</td>
+                    <td>Grid electricity power draw</td>
+                </tr>
+                <tr>
+                    <td>Petrol Consumption</td>
+                    <td><strong>{{ pred.petrol_liters }}</strong></td>
+                    <td>Liters / month</td>
+                    <td>Passenger vehicle fuel burn</td>
+                </tr>
+                <tr>
+                    <td>Diesel Consumption</td>
+                    <td><strong>{{ pred.diesel_liters }}</strong></td>
+                    <td>Liters / month</td>
+                    <td>Heavy transport / generator fuel</td>
+                </tr>
+                <tr>
+                    <td>LPG Gas Usage</td>
+                    <td><strong>{{ pred.lpg_kg }}</strong></td>
+                    <td>kg / month</td>
+                    <td>Cooking fuel combustion</td>
+                </tr>
+                <tr>
+                    <td>Public Transport Usage</td>
+                    <td><strong>{{ pred.public_transport_km }}</strong></td>
+                    <td>km / month</td>
+                    <td>Shared commute distance</td>
+                </tr>
+                <tr>
+                    <td>Waste Generated</td>
+                    <td><strong>{{ pred.waste_generated_kg }}</strong></td>
+                    <td>kg / month</td>
+                    <td>Solid waste landfill burden</td>
+                </tr>
+                <tr>
+                    <td>Solar Renewable Energy</td>
+                    <td><strong>{{ pred.solar_energy_kwh }}</strong></td>
+                    <td>kWh / month</td>
+                    <td>Clean solar energy offset</td>
+                </tr>
+                <tr>
+                    <td>Tree Cover Percentage</td>
+                    <td><strong>{{ pred.tree_cover_percent }}</strong> %</td>
+                    <td>Percentage (%)</td>
+                    <td>Local green sequestration capacity</td>
+                </tr>
+                <tr>
+                    <td>Air Quality Index (AQI)</td>
+                    <td><strong>{{ pred.aqi }}</strong></td>
+                    <td>AQI score</td>
+                    <td>Ambient air pollution factor</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('chartContributions');
+    if (!ctx) return;
+
+    const factors = {{ result_data.feature_contributions | tojson }};
+    const labels = factors.map(f => f.factor);
+    const dataVals = factors.map(f => f.val);
+    const bgColors = factors.map(f => f.type === 'negative' ? 'rgba(16, 185, 129, 0.75)' : 'rgba(239, 68, 68, 0.75)');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Contribution (kg CO₂)',
+                data: dataVals,
+                backgroundColor: bgColors,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

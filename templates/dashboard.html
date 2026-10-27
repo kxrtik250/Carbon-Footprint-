@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Carbon Monitoring System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Tamil Nadu Carbon Emission Analytics</h1>
+        <p class="page-subtitle">Real-time Machine Learning prediction summary & district insights</p>
+    </div>
+    <div>
+        <a href="{{ url_for('predict') }}" class="btn btn-primary">⚡ Run New Prediction</a>
+    </div>
+</div>
+
+<!-- Metric Cards Grid -->
+<div class="card-grid">
+    <div class="card metric-card">
+        <div class="metric-icon">📊</div>
+        <div>
+            <div class="metric-val">{{ metrics.total_predictions }}</div>
+            <div class="metric-label">Total Predictions</div>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-icon" style="background: #e0f2fe; color: #0284c7;">💨</div>
+        <div>
+            <div class="metric-val">{{ metrics.avg_emission }} <span style="font-size:0.85rem; font-weight:normal;">kg CO₂</span></div>
+            <div class="metric-label">Average Emission</div>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-icon" style="background: #fef3c7; color: #d97706;">⚡</div>
+        <div>
+            <div class="metric-val">{{ metrics.avg_score }} <span style="font-size:0.85rem; font-weight:normal;">/ 100</span></div>
+            <div class="metric-label">Avg Environmental Score</div>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-icon" style="background: #fee2e2; color: #dc2626;">⚠️</div>
+        <div>
+            <div class="metric-val" style="font-size: 1.1rem; word-break: break-word;">{{ metrics.highest_loc }}</div>
+            <div class="metric-label">Highest Emission Location</div>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div class="metric-icon" style="background: #d1fae5; color: #059669;">🌿</div>
+        <div>
+            <div class="metric-val" style="font-size: 1.1rem; word-break: break-word;">{{ metrics.lowest_loc }}</div>
+            <div class="metric-label">Lowest Emission Location</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <span>📈 Avg CO₂ Emission by District</span>
+            <span style="font-size: 0.8rem; color: var(--muted); font-weight: normal;">kg CO₂ / month</span>
+        </h3>
+        <div style="position: relative; height: 280px;">
+            <canvas id="chartDistrict"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <span>🎯 Emission Category Distribution</span>
+        </h3>
+        <div style="position: relative; height: 280px;">
+            <canvas id="chartCategory"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <span>🛡️ Environmental Score Distribution</span>
+        </h3>
+        <div style="position: relative; height: 280px;">
+            <canvas id="chartScore"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <span>📉 Prediction Trend History</span>
+        </h3>
+        <div style="position: relative; height: 280px;">
+            <canvas id="chartTrend"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Predictions Table -->
+<div style="margin-top: 2rem;">
+    <div class="page-header">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--dark);">Recent Prediction Records</h2>
+        <a href="{{ url_for('history') }}" style="font-weight: 600; font-size: 0.9rem;">View All History →</a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>District</th>
+                    <th>Place</th>
+                    <th>Area Type</th>
+                    <th>Predicted CO₂</th>
+                    <th>Score</th>
+                    <th>Category</th>
+                    <th>Date & Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in recent_predictions %}
+                <tr>
+                    <td>#{{ p.id }}</td>
+                    <td><strong>{{ p.district }}</strong></td>
+                    <td>{{ p.place }}</td>
+                    <td><span style="font-size: 0.85rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ p.area_type }}</span></td>
+                    <td><strong>{{ p.predicted_emission }}</strong> kg</td>
+                    <td>
+                        <span style="font-weight: 700; color: {% if p.environmental_score >= 80 %}#059669{% elif p.environmental_score >= 60 %}#0284c7{% elif p.environmental_score >= 40 %}#d97706{% else %}#dc2626{% endif %};">
+                            {{ p.environmental_score }}
+                        </span>/100
+                    </td>
+                    <td>
+                        {% if p.emission_category == 'Low' %}
+                            <span class="badge badge-low">Low</span>
+                        {% elif p.emission_category == 'Moderate' %}
+                            <span class="badge badge-moderate">Moderate</span>
+                        {% elif p.emission_category == 'High' %}
+                            <span class="badge badge-high">High</span>
+                        {% else %}
+                            <span class="badge badge-veryhigh">Very High</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.85rem; color: var(--muted);">{{ p.timestamp }}</td>
+                    <td>
+                        <a href="{{ url_for('result', pred_id=p.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">View Report</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" style="text-align: center; color: var(--muted); padding: 2rem;">No predictions found yet. Run your first prediction above!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

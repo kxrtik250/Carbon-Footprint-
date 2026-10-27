@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Carbon Emission Prediction - EcoPredict AI{% endblock %}
+
+{% block content %}
+<div class="page-header" style="max-width: 900px; margin: 0 auto 1.5rem auto;">
+    <div>
+        <h1 class="page-title">Carbon Emission ML Predictor</h1>
+        <p class="page-subtitle">Select location parameters & energy consumption values to calculate predicted CO₂ output</p>
+    </div>
+    <div>
+        <button type="button" id="load_preset_btn" class="btn btn-outline">⚡ Fill Demo Preset Values</button>
+    </div>
+</div>
+
+<div class="form-card">
+    <form id="predictionForm" method="POST" action="{{ url_for('predict') }}">
+        
+        <!-- SECTION 1: LOCATION -->
+        <h3 class="form-section-title">1. Location Selection</h3>
+        <div class="form-grid" style="margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label" for="district">
+                    District <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Select Tamil Nadu district">?</span>
+                </label>
+                <select id="district" name="district" class="form-control" required>
+                    <option value="">-- Select District --</option>
+                    {% for d in districts %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+                <span class="input-unit">Tamil Nadu Region</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="place">
+                    Place / Area <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Select specific place under district">?</span>
+                </label>
+                <select id="place" name="place" class="form-control" required>
+                    <option value="">-- Select District First --</option>
+                </select>
+                <span class="input-unit">Specific Geolocation</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="area_type">
+                    Area Classification <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Urban, Semi-Urban, Industrial, or Rural zone">?</span>
+                </label>
+                <input type="text" id="area_type" name="area_type" class="form-control" value="Urban" readonly style="background:#f1f5f9; cursor:not-allowed;">
+                <span class="input-unit">Auto-detected from place selection</span>
+            </div>
+        </div>
+
+        <!-- SECTION 2: DEMOGRAPHICS & AIR QUALITY -->
+        <h3 class="form-section-title">2. Demographics & Environmental Baseline</h3>
+        <div class="form-grid" style="margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label" for="population_density">
+                    Population Density <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Number of people per square kilometer">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="population_density" name="population_density" class="form-control" placeholder="e.g. 15000" value="12500" required>
+                <span class="input-unit">people / km²</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="aqi">
+                    Air Quality Index (AQI) <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Current ambient Air Quality Index value">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="aqi" name="aqi" class="form-control" placeholder="e.g. 110" value="95" required>
+                <span class="input-unit">AQI score (0 - 500)</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="region_emission_factor">
+                    Grid Emission Factor
+                    <span class="tooltip-icon" title="CO2 grid multiplier for regional power generation">?</span>
+                </label>
+                <input type="number" step="0.001" min="0.5" max="1.5" id="region_emission_factor" name="region_emission_factor" class="form-control" value="0.82" required>
+                <span class="input-unit">kg CO₂ / kWh</span>
+            </div>
+        </div>
+
+        <!-- SECTION 3: ENERGY & FUEL CONSUMPTION -->
+        <h3 class="form-section-title">3. Energy & Fuel Monthly Consumption</h3>
+        <div class="form-grid" style="margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label" for="electricity_kwh">
+                    Electricity Consumption <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Monthly grid electricity usage">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="electricity_kwh" name="electricity_kwh" class="form-control" placeholder="e.g. 450" value="420" required>
+                <span class="input-unit">kWh / month</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="petrol_liters">
+                    Petrol Consumption <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Monthly petrol consumed by vehicles">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="petrol_liters" name="petrol_liters" class="form-control" placeholder="e.g. 60" value="55" required>
+                <span class="input-unit">Liters / month</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="diesel_liters">
+                    Diesel Consumption <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Monthly diesel consumed for transportation/generators">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="diesel_liters" name="diesel_liters" class="form-control" placeholder="e.g. 30" value="25" required>
+                <span class="input-unit">Liters / month</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="lpg_kg">
+                    LPG Gas Usage <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Cooking gas cylinder usage in kg">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="lpg_kg" name="lpg_kg" class="form-control" placeholder="e.g. 20" value="18" required>
+                <span class="input-unit">kg / month</span>
+            </div>
+        </div>
+
+        <!-- SECTION 4: TRANSPORTATION, WASTE & RENEWABLES -->
+        <h3 class="form-section-title">4. Waste, Transit & Offsetting Parameters</h3>
+        <div class="form-grid" style="margin-bottom: 2rem;">
+            <div class="form-group">
+                <label class="form-label" for="public_transport_km">
+                    Public Transport Usage <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Distance traveled via buses or trains">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="public_transport_km" name="public_transport_km" class="form-control" placeholder="e.g. 250" value="220" required>
+                <span class="input-unit">km / month</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="waste_generated_kg">
+                    Waste Generated <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Total solid municipal waste produced">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="waste_generated_kg" name="waste_generated_kg" class="form-control" placeholder="e.g. 40" value="35" required>
+                <span class="input-unit">kg / month</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="solar_energy_kwh">
+                    Solar Energy Generated <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Rooftop renewable solar power produced">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="solar_energy_kwh" name="solar_energy_kwh" class="form-control" placeholder="e.g. 150" value="120" required>
+                <span class="input-unit">kWh / month (Offset)</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="tree_cover_percent">
+                    Tree / Vegetation Cover <span style="color:#ef4444;">*</span>
+                    <span class="tooltip-icon" title="Percentage of local area covered by trees">?</span>
+                </label>
+                <input type="number" step="0.1" min="0" max="100" id="tree_cover_percent" name="tree_cover_percent" class="form-control" placeholder="e.g. 20" value="18" required>
+                <span class="input-unit">% Green cover</span>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.85rem 2.5rem; font-size: 1.05rem;">
+                🚀 Predict Carbon Emission (ML Inference)
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/prediction.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}About System - EcoPredict AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">About AI Carbon Emission Monitoring System</h1>
+        <p class="page-subtitle">Machine Learning methodology, environmental scoring, and map architecture</p>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 960px; margin: 0 auto;">
+    
+    <!-- System Architecture -->
+    <div class="card">
+        <h2 style="color: var(--dark); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">🌱 System Architecture & ML Pipeline</h2>
+        <p style="color: var(--slate); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+            The AI Carbon Emission Prediction and Monitoring System utilizes Scikit-learn Machine Learning regressors trained on 5,000 environmental and consumption records across 10 Tamil Nadu districts (50 specific locations). Input parameters pass through standard preprocessing, categorical encoding, and feature scaling before model inference.
+        </p>
+        <div style="background: var(--light-bg); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; color: var(--slate);">
+            User Inputs ➔ Validation ➔ Categorical Encoding ➔ StandardScaler ➔ Regressor (.pkl) ➔ Predicted CO₂ (kg) ➔ Environmental Score & Tree Offset ➔ Leaflet Map Render
+        </div>
+    </div>
+
+    <!-- Emission Factors Table -->
+    <div class="card">
+        <h2 style="color: var(--dark); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">📐 Emission Factor Reference Standards</h2>
+        <p style="color: var(--slate); font-size: 0.95rem; margin-bottom: 1rem;">The system leverages international IPCC standard greenhouse gas emission conversion factors:</p>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Parameter Source</th>
+                        <th>Conversion Unit</th>
+                        <th>CO₂ Emission Factor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Grid Electricity</td>
+                        <td>1 kWh</td>
+                        <td><strong>0.820 kg CO₂</strong> (Regional Tamil Nadu Grid EF)</td>
+                    </tr>
+                    <tr>
+                        <td>Motor Petrol</td>
+                        <td>1 Liter</td>
+                        <td><strong>2.310 kg CO₂</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Automotive Diesel</td>
+                        <td>1 Liter</td>
+                        <td><strong>2.680 kg CO₂</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Liquefied Petroleum Gas (LPG)</td>
+                        <td>1 kg</td>
+                        <td><strong>2.983 kg CO₂</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Municipal Solid Waste</td>
+                        <td>1 kg</td>
+                        <td><strong>0.450 kg CO₂</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Public Transit (Bus/Train)</td>
+                        <td>1 km</td>
+                        <td><strong>0.089 kg CO₂</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Rooftop Solar PV</td>
+                        <td>1 kWh</td>
+                        <td><strong style="color:#059669;">-0.820 kg CO₂ (Offset)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Annual Tree Sequestration</td>
+                        <td>1 Mature Tree</td>
+                        <td><strong style="color:#059669;">~21.77 kg CO₂ / year</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Environmental Score & Tree Offset Formulas -->
+    <div class="card">
+        <h2 style="color: var(--dark); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">📊 Formulas & Scoring Metrics</h2>
+        
+        <h3 style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-top: 0.75rem;">1. Environmental Score Calculation</h3>
+        <p style="color: var(--slate); font-size: 0.95rem; margin-bottom: 0.5rem;">
+            The Environmental Score rates local sustainability on a scale from 0 to 100:
+        </p>
+        <div style="background: var(--light-bg); padding: 0.75rem 1rem; border-radius: 6px; font-weight: 600; font-family: monospace; color: var(--dark);">
+            Score = max(0, min(100, round(100 - (Predicted_Emission / 800.0) * 100)))
+        </div>
+
+        <h3 style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-top: 1.25rem;">2. Estimated Tree Offset Requirement</h3>
+        <p style="color: var(--slate); font-size: 0.95rem; margin-bottom: 0.5rem;">
+            Estimates the number of mature trees required to offset the annual carbon footprint:
+        </p>
+        <div style="background: var(--light-bg); padding: 0.75rem 1rem; border-radius: 6px; font-weight: 600; font-family: monospace; color: var(--dark);">
+            Tree_Offset = ceil((Predicted_Emission * 12) / 21.77)
+        </div>
+    </div>
+
+    <!-- Map Technology -->
+    <div class="card">
+        <h2 style="color: var(--dark); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">🗺️ Map Technology: Leaflet.js + OpenStreetMap</h2>
+        <p style="color: var(--slate); font-size: 0.95rem;">
+            This system integrates a fully functional, real interactive map using <strong>Leaflet.js</strong> and open-source <strong>OpenStreetMap</strong> tiles. All supported locations maintain accurate geographic coordinates (latitude and longitude) in a local database table, eliminating the need for paid geocoding APIs while supporting zooming, panning, pin markers, emission popups, and dynamic re-centering.
+        </p>
+    </div>
+</div>
+{% endblock %}

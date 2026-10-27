@@ -29,3 +29,5 @@ backups/
 Thumbs.db
 .vscode/
 .idea/
+carbon_emission_system/
+tests/

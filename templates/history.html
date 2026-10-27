@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History - EcoPredict AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Prediction History Log</h1>
+        <p class="page-subtitle">Search, filter, and audit all recorded carbon emission predictions in SQLite</p>
+    </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ url_for('history') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 200px;">
+            <label class="form-label" for="search">Search Keywords</label>
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search District, Place or User..." value="{{ search_query }}">
+        </div>
+
+        <div style="min-width: 180px;">
+            <label class="form-label" for="district">Filter District</label>
+            <select id="district" name="district" class="form-control">
+                <option value="">All Districts</option>
+                {% for d in districts %}
+                <option value="{{ d.district }}" {% if selected_district == d.district %}selected{% endif %}>{{ d.district }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="min-width: 180px;">
+            <label class="form-label" for="category">Emission Category</label>
+            <select id="category" name="category" class="form-control">
+                <option value="">All Categories</option>
+                <option value="Low" {% if selected_category == 'Low' %}selected{% endif %}>Low</option>
+                <option value="Moderate" {% if selected_category == 'Moderate' %}selected{% endif %}>Moderate</option>
+                <option value="High" {% if selected_category == 'High' %}selected{% endif %}>High</option>
+                <option value="Very High" {% if selected_category == 'Very High' %}selected{% endif %}>Very High</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.2rem;">Filter</button>
+            <a href="{{ url_for('history') }}" class="btn btn-outline" style="padding: 0.65rem 1rem;">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Table Container -->
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Log ID</th>
+                <th>District</th>
+                <th>Place</th>
+                <th>Area Type</th>
+                <th>Electricity (kWh)</th>
+                <th>Petrol (L)</th>
+                <th>Predicted CO₂</th>
+                <th>Score</th>
+                <th>Category</th>
+                <th>Date & Time</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in predictions %}
+            <tr>
+                <td>#{{ p.id }}</td>
+                <td><strong>{{ p.district }}</strong></td>
+                <td>{{ p.place }}</td>
+                <td><span style="font-size:0.8rem; background:#f1f5f9; padding:2px 6px; border-radius:4px;">{{ p.area_type }}</span></td>
+                <td>{{ p.electricity_kwh }}</td>
+                <td>{{ p.petrol_liters }}</td>
+                <td><strong>{{ p.predicted_emission }}</strong> kg</td>
+                <td>
+                    <span style="font-weight: 700; color: {% if p.environmental_score >= 80 %}#059669{% elif p.environmental_score >= 60 %}#0284c7{% elif p.environmental_score >= 40 %}#d97706{% else %}#dc2626{% endif %};">
+                        {{ p.environmental_score }}
+                    </span>/100
+                </td>
+                <td>
+                    {% if p.emission_category == 'Low' %}
+                        <span class="badge badge-low">Low</span>
+                    {% elif p.emission_category == 'Moderate' %}
+                        <span class="badge badge-moderate">Moderate</span>
+                    {% elif p.emission_category == 'High' %}
+                        <span class="badge badge-high">High</span>
+                    {% else %}
+                        <span class="badge badge-veryhigh">Very High</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 0.85rem; color: var(--muted);">{{ p.timestamp }}</td>
+                <td>
+                    <a href="{{ url_for('result', pred_id=p.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Report</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="11" style="text-align: center; color: var(--muted); padding: 2rem;">No matching history records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

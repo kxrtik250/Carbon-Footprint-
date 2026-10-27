@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Live Map - EcoPredict AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Interactive Tamil Nadu Carbon Emission Map</h1>
+        <p class="page-subtitle">Real-time Leaflet.js & OpenStreetMap geolocation visualization of district emissions</p>
+    </div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted);">Map Legend:</span>
+        <span class="badge badge-low">🟢 Low</span>
+        <span class="badge badge-moderate">🟡 Moderate</span>
+        <span class="badge badge-high">🟠 High</span>
+        <span class="badge badge-veryhigh">🔴 Very High</span>
+    </div>
+</div>
+
+<!-- Interactive Map Container -->
+<div class="card" style="padding: 0.5rem; margin-bottom: 2rem;">
+    <div id="map"></div>
+</div>
+
+<div class="card">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">💡 How to use the Interactive Map</h3>
+    <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--slate); display: flex; flex-direction: column; gap: 0.3rem;">
+        <li><strong>Zoom & Pan:</strong> Use mouse wheel or top-left +/- controls to zoom into specific Tamil Nadu districts and places.</li>
+        <li><strong>Click Markers:</strong> Click any colored marker pin to open an interactive popup card detailing District, Place, Area Type, Predicted CO₂ (kg), and Environmental Score.</li>
+        <li><strong>Dynamic Color Indicators:</strong> Green markers signify Low emissions (<150 kg), Yellow signifies Moderate emissions (150-350 kg), Orange signifies High risk (350-600 kg), and Red indicates Critical levels (>600 kg).</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}
